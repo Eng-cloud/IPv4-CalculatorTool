@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPv4 Calculator Tool</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #74ebd5, #acb6e5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      width: 500px;
+      text-align: center;
+    }
+    h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f0f8ff;
+    }
+    .form-table {
+      margin: auto;
+    }
+    input[type="text"], input[type="number"] {
+      padding: 10px;
+      width: 90%;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    input[type="submit"] {
+      padding: 12px 24px;
+      margin-top: 15px;
+      background: #4CAF50;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    input[type="submit"]:hover {
+      background: #43a047;
+    }
+    .result {
+      margin-top: 25px;
+      background-color: #e3ffe9;
+      padding: 15px;
+      border-left: 6px solid #2e7d32;
+      border-radius: 8px;
+    }
+    .social-icons {
+      margin-top: 25px;
+    }
+    .social-icons a {
+      margin: 0 12px;
+      font-size: 24px;
+      color: #333;
+      transition: 0.3s;
+    }
+    .social-icons a:hover {
+      color: #0077b5;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>IPv4 Calculator Tool</h2>
+
+  <form id="ipForm">
+    <table class="form-table">
+      <tr>
+        <th>IP Address</th>
+        <th>CIDR</th>
+      </tr>
+      <tr>
+        <td><input type="text" id="ip" placeholder="192.168.1.0" required></td>
+        <td><input type="number" id="cidr" placeholder="24" required></td>
+      </tr>
+    </table>
+    <input type="submit" value="Check">
+  </form>
+
+  <div class="result" id="result"></div>
+
+  <div class="social-icons">
+    <a href="https://github.com/Eng-cloud" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+    <a href="https://linkedin.com/in/abdullah-abdali-342126346" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+  </div>
+</div>
+
+<script>
+function formatIP(ipLong) {
+  return [(ipLong >>> 24) & 0xFF, (ipLong >>> 16) & 0xFF, (ipLong >>> 8) & 0xFF, ipLong & 0xFF].join('.');
+}
+
+document.getElementById('ipForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const ip = document.getElementById('ip').value.trim();
+  const cidr = parseInt(document.getElementById('cidr').value);
+  const octets = ip.split('.').map(Number);
+  const ipInt = (octets[0] << 24) | (octets[1] << 16) | (octets[2] << 8) | octets[3];
+
+  let ipClass = 'Outside A-C range';
+  if (octets[0] <= 127) ipClass = 'Class A';
+  else if (octets[0] <= 191) ipClass = 'Class B';
+  else if (octets[0] <= 223) ipClass = 'Class C';
+
+  const maskInt = cidr === 0 ? 0 : (~0 << (32 - cidr)) >>> 0;
+  const subnetMask = formatIP(maskInt);
+  const networkAddress = ipInt & maskInt;
+  const broadcastAddress = networkAddress | (~maskInt >>> 0);
+  const firstHost = networkAddress + 1;
+  const lastHost = broadcastAddress - 1;
+  const hostBits = 32 - cidr;
+  const maxDevices = (2 ** hostBits) - 2;
+
+  document.getElementById('result').innerHTML = `
+    <table>
+      <tr><th>IP Address</th><td>${ip}</td></tr>
+      <tr><th>CIDR</th><td>/${cidr}</td></tr>
+      <tr><th>Class</th><td>${ipClass}</td></tr>
+      <tr><th>Host Bits</th><td>${hostBits}</td></tr>
+      <tr><th>Max Devices</th><td>${maxDevices}</td></tr>
+      <tr><th>Subnet Mask</th><td>${subnetMask}</td></tr>
+      <tr><th>Network Address</th><td>${formatIP(networkAddress)}</td></tr>
+      <tr><th>Broadcast Address</th><td>${formatIP(broadcastAddress)}</td></tr>
+      <tr><th>First Host</th><td>${formatIP(firstHost)}</td></tr>
+      <tr><th>Last Host</th><td>${formatIP(lastHost)}</td></tr>
+    </table>`;
+});
+</script>
+
+</body>
+</html>
